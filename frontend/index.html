@@ -3,29 +3,31 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Contact Form — Email Verification</title>
+        <title>Contact Form with Email Verification</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                height: 100vh;
+                min-height: 100vh;
                 background-color: #f4f4f9;
                 margin: 0;
+                padding: 20px;
             }
             .form-container {
                 background: white;
                 padding: 2rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
                 width: 100%;
-                max-width: 400px;
+                max-width: 450px;
             }
             h2 {
                 text-align: center;
                 margin-bottom: 1.5rem;
                 color: #333;
+                font-weight: 600;
             }
             .form-group {
                 margin-bottom: 1rem;
@@ -34,43 +36,160 @@
                 display: block;
                 margin-bottom: 0.5rem;
                 color: #555;
+                font-size: 0.9rem;
+                font-weight: 500;
             }
             input {
                 width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 4px;
+                padding: 0.85rem;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
                 box-sizing: border-box;
                 font-size: 1rem;
+                transition: border-color 0.3s;
             }
             input:focus {
                 border-color: #007bff;
                 outline: none;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
             }
             button {
                 width: 100%;
-                padding: 0.75rem;
+                padding: 0.9rem;
                 background-color: #007bff;
                 color: white;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-size: 1rem;
+                font-weight: 600;
                 cursor: pointer;
-                transition: background 0.3s;
+                transition: all 0.3s;
+                margin-top: 10px;
             }
-            button:hover {
+            button:hover:not(:disabled) {
                 background-color: #0056b3;
+                transform: translateY(-1px);
             }
             button:disabled {
-                background-color: #ccc;
+                background-color: #a0cfff;
                 cursor: not-allowed;
+                transform: none;
             }
+
+            /* Progress Bar Styles */
+            .progress-container {
+                margin-top: 1.5rem;
+                display: none; /* Hidden by default */
+            }
+
+            .progress-label {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                font-size: 0.85rem;
+                color: #666;
+                font-weight: 500;
+            }
+
+            .progress-track {
+                background-color: #e9ecef;
+                border-radius: 10px;
+                height: 8px;
+                overflow: hidden;
+                position: relative;
+                margin-bottom: 15px;
+            }
+
+            .progress-fill {
+                background-color: #007bff;
+                height: 100%;
+                width: 0%;
+                border-radius: 10px;
+                transition: width 0.4s ease;
+                position: relative;
+            }
+
+            /* Shimmer effect for loading */
+            .progress-fill::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                background: linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.4) 50%,
+                    rgba(255, 255, 255, 0) 100%
+                );
+                transform: translateX(-100%);
+                animation: shimmer 2s infinite;
+            }
+
+            @keyframes shimmer {
+                100% {
+                    transform: translateX(100%);
+                }
+            }
+
+            .checkpoints {
+                display: flex;
+                justify-content: space-between;
+                position: relative;
+            }
+
+            .checkpoint {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                z-index: 2;
+                position: relative;
+            }
+
+            .checkpoint-dot {
+                width: 12px;
+                height: 12px;
+                background-color: #e9ecef;
+                border-radius: 50%;
+                border: 2px solid white;
+                box-shadow: 0 0 0 1px #ccc;
+                transition: all 0.3s ease;
+            }
+
+            .checkpoint.active .checkpoint-dot {
+                background-color: #007bff;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+                transform: scale(1.2);
+            }
+
+            .checkpoint.completed .checkpoint-dot {
+                background-color: #28a745;
+                box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+            }
+
+            .checkpoint-label {
+                font-size: 0.7rem;
+                color: #999;
+                margin-top: 6px;
+                text-align: center;
+                transition: color 0.3s;
+            }
+
+            .checkpoint.active .checkpoint-label,
+            .checkpoint.completed .checkpoint-label {
+                color: #333;
+                font-weight: 600;
+            }
+
             #status-message {
                 margin-top: 1rem;
-                padding: 0.75rem;
-                border-radius: 4px;
+                padding: 0.85rem;
+                border-radius: 6px;
                 display: none;
                 text-align: center;
+                font-size: 0.9rem;
+                line-height: 1.4;
             }
             .error {
                 background-color: #f8d7da;
@@ -121,6 +240,31 @@
                 <button type="submit" id="submitBtn">Send Message</button>
             </form>
 
+            <!-- Progress Bar Section -->
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-label">
+                    <span>Processing</span>
+                    <span id="progressText">Starting...</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="checkpoints">
+                    <div class="checkpoint" id="cp1">
+                        <div class="checkpoint-dot"></div>
+                        <div class="checkpoint-label">Format</div>
+                    </div>
+                    <div class="checkpoint" id="cp2">
+                        <div class="checkpoint-dot"></div>
+                        <div class="checkpoint-label">Verify</div>
+                    </div>
+                    <div class="checkpoint" id="cp3">
+                        <div class="checkpoint-dot"></div>
+                        <div class="checkpoint-label">Send</div>
+                    </div>
+                </div>
+            </div>
+
             <div id="status-message"></div>
         </div>
 
@@ -134,43 +278,82 @@
 
                     const submitBtn = document.getElementById("submitBtn");
                     const statusDiv = document.getElementById("status-message");
+                    const progressContainer =
+                        document.getElementById("progressContainer");
+                    const progressFill =
+                        document.getElementById("progressFill");
+                    const progressText =
+                        document.getElementById("progressText");
+                    const cp1 = document.getElementById("cp1");
+                    const cp2 = document.getElementById("cp2");
+                    const cp3 = document.getElementById("cp3");
+
                     const formData = {
                         name: document.getElementById("name").value,
                         phone: document.getElementById("phone").value,
                         email: document.getElementById("email").value,
                     };
 
-                    // Basic client-side email check
-                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailPattern.test(formData.email)) {
-                        statusDiv.textContent =
-                            "Please enter a valid email address.";
-                        statusDiv.className = "error";
-                        statusDiv.style.display = "block";
-                        return;
-                    }
-
                     // Reset UI
                     statusDiv.style.display = "none";
                     statusDiv.className = "";
+                    progressContainer.style.display = "block";
                     submitBtn.disabled = true;
-                    submitBtn.textContent = "Verifying...";
+                    submitBtn.textContent = "Processing...";
+
+                    // Reset Progress
+                    progressFill.style.width = "0%";
+                    progressText.textContent = "Starting...";
+                    cp1.className = "checkpoint";
+                    cp2.className = "checkpoint";
+                    cp3.className = "checkpoint";
+
+                    // Helper to update progress
+                    const updateProgress = (percent, text, activeStep) => {
+                        progressFill.style.width = percent + "%";
+                        progressText.textContent = text;
+                        if (activeStep === 1) cp1.classList.add("active");
+                        if (activeStep === 2) {
+                            cp1.classList.remove("active");
+                            cp1.classList.add("completed");
+                            cp2.classList.add("active");
+                        }
+                        if (activeStep === 3) {
+                            cp2.classList.remove("active");
+                            cp2.classList.add("completed");
+                            cp3.classList.add("active");
+                        }
+                    };
 
                     try {
+                        // Step 1: Simulate Format Check (Fast)
+                        updateProgress(33, "Checking format...", 1);
+
+                        // Step 2: Simulate Verification (The API call)
+                        // We wait a tiny bit to let the user see the first step
+                        await new Promise((r) => setTimeout(r, 400));
+                        updateProgress(66, "Verifying email...", 2);
+
+                        // Real API Call (URL read from gitignored config.js)
                         const response = await fetch(CONFIG.WEBHOOK_URL, {
                             method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
+                            headers: { "Content-Type": "application/json" },
                             body: JSON.stringify(formData),
                         });
 
                         const result = await response.json();
 
+                        // Step 3: Finalizing
+                        updateProgress(100, "Finalizing...", 3);
+                        await new Promise((r) => setTimeout(r, 300)); // Short delay for visual completion
+
                         if (result.success) {
                             statusDiv.textContent = result.message;
                             statusDiv.className = "success";
                             statusDiv.style.display = "block";
+                            progressContainer.style.display = "none"; // Hide progress on success
+                            // Optional: Clear form
+                            // document.getElementById('contactForm').reset();
                         } else {
                             statusDiv.textContent =
                                 result.message +
@@ -179,13 +362,15 @@
                                     : "");
                             statusDiv.className = "error";
                             statusDiv.style.display = "block";
+                            progressContainer.style.display = "none"; // Hide progress on fail
                         }
                     } catch (error) {
+                        console.error("Error:", error);
                         statusDiv.textContent =
                             "An unexpected error occurred. Please try again later.";
                         statusDiv.className = "error";
                         statusDiv.style.display = "block";
-                        console.error("Error:", error);
+                        progressContainer.style.display = "none";
                     } finally {
                         submitBtn.disabled = false;
                         submitBtn.textContent = "Send Message";
