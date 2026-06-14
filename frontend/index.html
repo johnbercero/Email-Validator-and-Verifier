@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Contact Form — Email Verification</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background-color: #f4f4f9;
+                margin: 0;
+            }
+            .form-container {
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 400px;
+            }
+            h2 {
+                text-align: center;
+                margin-bottom: 1.5rem;
+                color: #333;
+            }
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #555;
+            }
+            input {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-sizing: border-box;
+                font-size: 1rem;
+            }
+            input:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+            button {
+                width: 100%;
+                padding: 0.75rem;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+            button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+            #status-message {
+                margin-top: 1rem;
+                padding: 0.75rem;
+                border-radius: 4px;
+                display: none;
+                text-align: center;
+            }
+            .error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .success {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="form-container">
+            <h2>Contact Us</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        required
+                        placeholder="John Doe"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        required
+                        placeholder="+1 234 567 8900"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="you@example.com"
+                    />
+                </div>
+                <button type="submit" id="submitBtn">Send Message</button>
+            </form>
+
+            <div id="status-message"></div>
+        </div>
+
+        <!-- Load config — create config.js from config.example.js -->
+        <script src="config.js"></script>
+        <script>
+            document
+                .getElementById("contactForm")
+                .addEventListener("submit", async function (e) {
+                    e.preventDefault();
+
+                    const submitBtn = document.getElementById("submitBtn");
+                    const statusDiv = document.getElementById("status-message");
+                    const formData = {
+                        name: document.getElementById("name").value,
+                        phone: document.getElementById("phone").value,
+                        email: document.getElementById("email").value,
+                    };
+
+                    // Basic client-side email check
+                    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailPattern.test(formData.email)) {
+                        statusDiv.textContent =
+                            "Please enter a valid email address.";
+                        statusDiv.className = "error";
+                        statusDiv.style.display = "block";
+                        return;
+                    }
+
+                    // Reset UI
+                    statusDiv.style.display = "none";
+                    statusDiv.className = "";
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = "Verifying...";
+
+                    try {
+                        const response = await fetch(CONFIG.WEBHOOK_URL, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(formData),
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            statusDiv.textContent = result.message;
+                            statusDiv.className = "success";
+                            statusDiv.style.display = "block";
+                        } else {
+                            statusDiv.textContent =
+                                result.message +
+                                (result.reason
+                                    ? ` (Reason: ${result.reason})`
+                                    : "");
+                            statusDiv.className = "error";
+                            statusDiv.style.display = "block";
+                        }
+                    } catch (error) {
+                        statusDiv.textContent =
+                            "An unexpected error occurred. Please try again later.";
+                        statusDiv.className = "error";
+                        statusDiv.style.display = "block";
+                        console.error("Error:", error);
+                    } finally {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Send Message";
+                    }
+                });
+        </script>
+    </body>
+</html>
