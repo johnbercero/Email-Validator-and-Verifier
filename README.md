@@ -4,6 +4,10 @@ A contact form with **multi-layer server-side email verification**, powered by [
 
 ![Contact Form Screenshot](screenshot.jpg)
 
+<video src="demo.mp4" width="100%" controls poster="screenshot.jpg">
+  Your browser doesn't support HTML video. <a href="demo.mp4">Download the demo video</a> instead.
+</video>
+
 ## How It Works
 
 ```
