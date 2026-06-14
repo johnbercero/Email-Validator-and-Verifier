@@ -2,6 +2,8 @@
 
 A contact form with **multi-layer server-side email verification**, powered by [n8n](https://n8n.io/).
 
+![Contact Form Screenshot](screenshot.jpg)
+
 ## How It Works
 
 ```
